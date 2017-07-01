@@ -1,6 +1,6 @@
 <?php
-
 require("./phpMQTT.php");
+include 'db_get_status.php';
 
 $mqtt = new phpMQTT("192.168.1.6", 1500, "pub"); 
 
@@ -14,24 +14,62 @@ if ($mqtt->connect())
   if($msg2)
   {    
     $status1 ='{"status": "'.$msg2.'" , "duration" :"'.$msg1.'"}' ;
-    while ( $i < 100 && $_SESSION['button'] == "ON" )
+    if($data != "{\"status\":\"ON\"}")
     {
-      $i++;
-	     $mqtt->publish("presence",$status1,0);
+      while ($i < 7)
+      {
+        $i++;
+        usleep(500000);
+        $mqtt->publish("presence",$status1,0);
+      }
+      usleep(2000000);
+      include 'db_get_status.php';
+      $x = $data ;     
+      if ($x != "{\"status\":\"ON\"}")
+      { 
+        require("./db_connection.php");
+        global $connection;
+        $error = "{\"status\":\"Plz Send Again\"}";
+        $sql = "UPDATE manage SET value= '$error' WHERE id=1";
+        $connection->query($sql);
+        header("Location:application.php");
+      }
+      else
+      {
+        $mqtt->close();
+        header("Location:application.php");
+      }
     }
-    if ($i >= 100)
-          header("Location:www.google.com");
-
-    $mqtt->close();
-    header("Location:application.php");
   }
-  elseif($msg3)
+    elseif($msg3)
   {
-  	$status2 ='{"status": "'.$msg3.'" }' ;
-	$mqtt->publish("presence",$status2,0);
-	$mqtt->close();
-	header("Location:application.php");
+    $status2 ='{"status": "'.$msg3.'" }' ;
+    if($data != "{\"status\":\"OFF\"}")
+    {
+      while ($i < 7)
+      {
+        $i++;
+        usleep(500000);
+        $mqtt->publish("presence",$status2,0);
+      }
+      usleep(2000000);
+      include 'db_get_status.php';
+      $x = $data ;
+      if ($x != "{\"status\":\"OFF\"}")
+      {
+        require("./db_connection.php");
+        global $connection;
+        $error = "{\"status\":\"Plz Send Again\"}";
+        $sql = "UPDATE manage SET value= '$error' WHERE id=1";
+        $connection->query($sql);
+        header("Location:application.php");
+      }
+      else
+      {
+        $mqtt->close();
+        header("Location:application.php");
+      }
+    }
   }
 }
-
 ?>

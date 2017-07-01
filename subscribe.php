@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 require("./phpMQTT.php");
 require("./db_connection.php");
 
