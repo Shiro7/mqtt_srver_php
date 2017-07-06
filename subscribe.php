@@ -1,10 +1,8 @@
 <?php
-session_start();
-
 require("./phpMQTT.php");
 require("./db_connection.php");
 
-$mqtt = new phpMQTT("192.168.1.6", 1500, "sub"); 
+$mqtt = new phpMQTT("192.168.1.2", 1500, "sub"); 
 
 if(!$mqtt->connect())
 {
@@ -23,8 +21,7 @@ $mqtt->close();
 function procmsg($topic,$msg)
 {
   global $connection;
- //echo "$msg";
- $sql = "UPDATE manage SET value='$msg' WHERE id=1";
- $connection->query($sql);
+  $sql = "UPDATE manage SET value='$msg' WHERE id=1";
+  $connection->query($sql);
 }
 ?>
